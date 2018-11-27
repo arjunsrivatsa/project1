@@ -36,8 +36,8 @@ app = Flask(__name__, template_folder=tmpl_dir)
 # For your convenience, we already set it to the class database
 
 # Use the DB credentials you received by e-mail
-DB_USER = "YOUR_DB_USERNAME_HERE"
-DB_PASSWORD = "YOUR_DB_PASSWORD_HERE"
+DB_USER = "cjd2177"
+DB_PASSWORD = "nn01vpi3"
 
 DB_SERVER = "w4111.cisxo09blonu.us-east-1.rds.amazonaws.com"
 
@@ -114,16 +114,59 @@ def index():
   """
 
   # DEBUG: this is debugging code to see what request looks like
-  print request.args
-
 
   #
   # example of a database query
   #
-  cursor = g.conn.execute("SELECT name FROM test")
+  #
+  # Flask uses Jinja templates, which is an extension to HTML where you can
+  # pass data to a template and dynamically generate HTML based on the data
+  # (you can think of it as simple PHP)
+  # documentation: https://realpython.com/blog/python/primer-on-jinja-templating/
+  #
+  # You can see an example template in templates/index.html
+  #
+  # context are the variables that are passed to the template.
+  # for example, "data" key in the context variable defined below will be 
+  # accessible as a variable in index.html:
+  #
+  #     # will print: [u'grace hopper', u'alan turing', u'ada lovelace']
+  #     <div>{{data}}</div>
+  #     
+  #     # creates a <div> tag for each element in data
+  #     # will print: 
+  #     #
+  #     #   <div>grace hopper</div>
+  #     #   <div>alan turing</div>
+  #     #   <div>ada lovelace</div>
+  #     #
+  #     {% for n in data %}
+  #     <div>{{n}}</div>
+  #     {% endfor %}
+  #
+ 
+
+
+  #
+  # render_template looks in the templates/ folder for files.
+  # for example, the below file reads template/index.html
+  #
+  return render_template("index.html")
+
+#
+# This is an example of a different path.  You can see it at
+# 
+#     localhost:8111/another
+#
+# notice that the functio name is another() rather than index()
+# the functions for each app.route needs to have different names
+#
+@app.route('/another')
+def another():
+  cursor = g.conn.execute("SELECT location.name, location.cross_street from location")
   names = []
   for result in cursor:
-    names.append(result['name'])  # can also be accessed using result[0]
+    names.append(result)  # can also be accessed using result[0]
   cursor.close()
 
   #
@@ -153,25 +196,7 @@ def index():
   #     {% endfor %}
   #
   context = dict(data = names)
-
-
-  #
-  # render_template looks in the templates/ folder for files.
-  # for example, the below file reads template/index.html
-  #
-  return render_template("index.html", **context)
-
-#
-# This is an example of a different path.  You can see it at
-# 
-#     localhost:8111/another
-#
-# notice that the functio name is another() rather than index()
-# the functions for each app.route needs to have different names
-#
-@app.route('/another')
-def another():
-  return render_template("anotherfile.html")
+  return render_template("anotherfile.html", **context)
 
 
 # Example of adding new data to the database
@@ -179,17 +204,40 @@ def another():
 def add():
   name = request.form['name']
   print name
-  cmd = 'INSERT INTO test(name) VALUES (:name1), (:name2)';
-  g.conn.execute(text(cmd), name1 = name, name2 = name);
+  cmd = 'INSERT INTO location(name) VALUES (:name1)';
+  g.conn.execute(text(cmd), name1 = name);
   return redirect('/')
 
-
-@app.route('/login')
+@app.route('/adduser', methods = ['POST'])
+def adduser(): 
+  theusername = request.form['uname']
+  print(theusername)
+  result_max = g.conn.execute('SELECT MAX(users.userid) from users')
+  for r in result_max: 
+    the_max_id = r[0]
+  new_id = the_max_id +1
+  cmd = "INSERT INTO users VALUES (:new_id, :name1)"
+  g.conn.execute(text(cmd), new_id = new_id, name1 = theusername)
+  return redirect('/')
+@app.route('/login', methods = ['POST'])
 def login():
-    abort(401)
-    this_is_never_executed()
-
-
+  username = request.form['name']
+  print(username)
+  cmd = 'SELECT count(*) FROM users WHERE users.username = :name1'
+  result = g.conn.execute(text(cmd), name1 = username)
+  for r in result:
+   print(r[0])
+   if(r[0]== 0):
+    return render_template("usererror.html")
+   else: 
+    cursor = g.conn.execute("SELECT * from users natural join user_likes_food")
+    names = []
+    for result in cursor:
+      names.append(result)  # can also be accessed using result[0]
+    cursor.close()
+    context = dict(data = names)
+    return render_template("reviewpage.html", **context)
+ 
 if __name__ == "__main__":
   import click
 
