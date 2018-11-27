@@ -198,6 +198,15 @@ def another():
   context = dict(data = names)
   return render_template("anotherfile.html", **context)
 
+@app.route('/review')
+def review():
+  cur = g.conn.execute( " select users.username, review_written.post_content, review_written.rating from users inner join review_written on users.userid = review_written.userid");
+  revs = []
+  for x in cur: 
+   revs.append(x)
+  cur.close()
+  context = dict(data = revs)
+  return render_template("review.html", **context) 
 
 # Example of adding new data to the database
 @app.route('/add', methods=['POST'])
@@ -207,7 +216,18 @@ def add():
   cmd = 'INSERT INTO location(name) VALUES (:name1)';
   g.conn.execute(text(cmd), name1 = name);
   return redirect('/')
-
+@app.route('/submitlocation', methods = ['POST'])
+def submitlocation():
+  thelocation = request.form['nameoflocation']
+  print(thelocation)
+  max_location = g.conn.execute('Select MAX(location.lid) from location')
+  for r in max_location: 
+    themaxloc = r[0]
+  newlocation = themaxloc+1
+  print(newlocation)
+  cmd = "INSERT into location values (-40,90,:newlocation1,'90th street',:thelocation1)"
+  g.conn.execute(text(cmd), newlocation1 = newlocation, thelocation1 = thelocation)
+  return redirect('/another')
 @app.route('/adduser', methods = ['POST'])
 def adduser(): 
   theusername = request.form['uname']
