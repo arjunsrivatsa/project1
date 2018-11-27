@@ -1,0 +1,19 @@
+<html>
+<body>
+  <h1>Here are reviews written by users around you</h1>
+  <div>
+    {% for n in data %}
+    <div>{{n}}</div>
+    {% endfor %}
+  </div>
+ <h2> write below to add your own review</h2>
+ <form method="POST" action="/checkuserreview">
+ <p>Username: <input type="text" name="usname"> <input type="submit" value="Add"></p>
+ </form>
+ <form method="POST" action="/writereview">
+ <p>Review: <input type="text" name="thereview"> <input type="submit" value="Add"></p>
+ </form>
+
+
+</body>
+</html>
