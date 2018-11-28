@@ -19,7 +19,7 @@ import os
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response
-
+import numbers
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
 
@@ -200,13 +200,13 @@ def another():
 
 @app.route('/review')
 def review():
-  cur = g.conn.execute( " select users.username, review_written.post_content, review_written.rating from users inner join review_written on users.userid = review_written.userid");
-  revs = []
-  for x in cur: 
-   revs.append(x)
-  cur.close()
-  context = dict(data = revs)
-  return render_template("review.html", **context) 
+ cur = g.conn.execute( " select users.username, review_written.post_content, review_written.rating from users inner join review_written on users.userid = review_written.userid");
+ revs = []
+ for x in cur: 
+  revs.append(x)
+ cur.close()
+ context = dict(data = revs)
+ return render_template("review.html", **context) 
 
 # Example of adding new data to the database
 @app.route('/add', methods=['POST'])
@@ -216,6 +216,47 @@ def add():
   cmd = 'INSERT INTO location(name) VALUES (:name1)';
   g.conn.execute(text(cmd), name1 = name);
   return redirect('/')
+@app.route('/exploreusers')
+def userpage(): 
+  return render_template("userpage.html")
+@app.route('/checkuser', methods = ['POST'])
+def checkuser(): 
+  useridtocheck = request.form['uid']
+  print(useridtocheck)
+  print(isinstance(useridtocheck,int))
+  query_to_check_if_user_exists = "SELECT count(*) from users where users.userid = :useridtocheck"
+  result_of_check_query = g.conn.execute(text(query_to_check_if_user_exists), useridtocheck = useridtocheck)
+  for r in result_of_check_query: 
+    if (r[0] == 0):
+      return render_template("errorpage.html")
+    else:
+      query_to_get_user_data = "SELECT users.username from users where users.userid = :useridtocheck"
+      data = []
+      result_of_query_for_userdata = g.conn.execute(text(query_to_get_user_data), useridtocheck = useridtocheck)
+      for r in result_of_query_for_userdata: 
+        data.append(r)
+      qforcuisine = "SELECT user_likes_food.cuisine from user_likes_food where user_likes_food.userid = :useridtocheck"
+      userlikesdata = []
+      resultofqforcuisine = g.conn.execute(text(qforcuisine), useridtocheck = useridtocheck)
+      for r in resultofqforcuisine:
+        userlikesdata.append(r)
+      qforvisit = "select location.name, user_visit.date, user_visit.time from user_visit natural join location where user_visit.userid = :useridtocheck"
+      uservisited = []
+      resultofqforvisit = g.conn.execute(text(qforvisit), useridtocheck = useridtocheck)
+      for r in resultofqforvisit:
+        uservisited.append(r)
+      qforrec = "select location.name from recommendation_given natural join location where recommendation_given.userid = :useridtocheck"
+      userrec = []
+      resultofqforrec = g.conn.execute(text(qforrec), useridtocheck = useridtocheck)
+      for r in resultofqforrec: 
+        userrec.append(r)
+      qforq = " select location.name from queue_placed natural join location where queue_placed.userid = :useridtocheck"
+      uq = []
+      resultofqforq = g.conn.execute(text(qforq), useridtocheck = useridtocheck)
+      for r in resultofqforq: 
+        uq.append(r) 
+      context = dict(data = data, userlikesdata = userlikesdata, uservisited = uservisited, userrec = userrec, uq = uq)
+      return render_template("displayuser.html", **context)
 @app.route('/submitlocation', methods = ['POST'])
 def submitlocation():
   thelocation = request.form['nameoflocation']
@@ -250,14 +291,37 @@ def login():
    if(r[0]== 0):
     return render_template("usererror.html")
    else: 
-    cursor = g.conn.execute("SELECT * from users natural join user_likes_food")
-    names = []
+    findid = "select users.userid from users where users.username = :usernametocheck"
+    cursor = g.conn.execute(text(findid), usernametocheck = username)
     for result in cursor:
-      names.append(result)  # can also be accessed using result[0]
-    cursor.close()
-    context = dict(data = names)
-    return render_template("reviewpage.html", **context)
- 
+      useridtocheck = result[0]
+    query_to_get_user_data = "SELECT users.username from users where users.userid = :useridtocheck"
+    data = []
+    result_of_query_for_userdata = g.conn.execute(text(query_to_get_user_data), useridtocheck = useridtocheck)
+    for r in result_of_query_for_userdata:
+      data.append(r)
+    qforcuisine = "SELECT user_likes_food.cuisine from user_likes_food where user_likes_food.userid = :useridtocheck"
+    userlikesdata = []
+    resultofqforcuisine = g.conn.execute(text(qforcuisine), useridtocheck = useridtocheck)
+    for r in resultofqforcuisine:
+      userlikesdata.append(r)
+    qforvisit = "select location.name, user_visit.date, user_visit.time from user_visit natural join location where user_visit.userid = :useridtocheck"
+    uservisited = []
+    resultofqforvisit = g.conn.execute(text(qforvisit), useridtocheck = useridtocheck)
+    for r in resultofqforvisit:
+      uservisited.append(r)
+    qforrec = "select location.name from recommendation_given natural join location where recommendation_given.userid = :useridtocheck"
+    userrec = []
+    resultofqforrec = g.conn.execute(text(qforrec), useridtocheck = useridtocheck)
+    for r in resultofqforrec:
+      userrec.append(r)
+    qforq = " select location.name from queue_placed natural join location where queue_placed.userid = :useridtocheck"
+    uq = []
+    resultofqforq = g.conn.execute(text(qforq), useridtocheck = useridtocheck)
+    for r in resultofqforq:
+      uq.append(r)
+    context = dict(data = data, userlikesdata = userlikesdata, uservisited = uservisited, userrec = userrec, uq = uq)
+    return render_template("reviewpage.html", **context) 
 if __name__ == "__main__":
   import click
 
