@@ -1,8 +1,7 @@
-<html>
+<htme>
 <body>
-<h1>Welcome, you are sucessfully logged in,your data is printed below, here you can see the reviews, and add a review for any attraction</h1>
 <div>
-<h2>Here is your name!</h2>
+<h3>This is the username </h3>
 {% for n in data%}
 <div>{{n}}</div>
 {% endfor %}
@@ -22,7 +21,8 @@
 {% for n in uq%}
 <div>{{n}}</div>
 {% endfor %}
+
 </div>
-<p><a href="/review">Click here to see and write reviews</a></p>
 </body>
+
 </html>
