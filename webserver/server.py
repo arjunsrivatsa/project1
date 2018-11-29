@@ -225,9 +225,10 @@ def checkuser():
   useridtocheck = request.form['uname']
   print(useridtocheck)
   print(isinstance(useridtocheck,int))
-  query_to_check_if_user_exists = "SELECT users.userid from users where users.username = :useridtocheck group by users.userid"
-  r = g.conn.execute(text(query_to_check_if_user_exists), useridtocheck = useridtocheck)
-  if not r:
+  query_to_check_if_user_exists = "SELECT users.userid from users where users.username = :useridtocheck"
+  try:
+    r = g.conn.execute(text(query_to_check_if_user_exists), useridtocheck = useridtocheck)
+  except:
     return render_template("errorgen.html", error = "Username does not exist.")
   useridtocheck = r[0]
   query_to_get_user_data = "SELECT users.username from users where users.userid = :useridtocheck"
@@ -341,7 +342,7 @@ def submitlocation():
 def adduser(): 
   theusername = request.form['uname']
   print(theusername)
-  if g.conn.execute("select users.username from users where users.username = %1;", (theusername,)):
+  if g.conn.execute("select users.username from users where users.username = %1;" %theusername):
     return render_template('errorgen.html', error = 'Cannot have duplicate username')
   result_max = g.conn.execute('SELECT MAX(users.userid) from users')
   for r in result_max: 
@@ -388,13 +389,13 @@ def login():
   uq.extend(resultofqforq)
   context = dict(data = data, userlikesdata = userlikesdata, uservisited = uservisited, userrec = userrec, uq = uq)
   return render_template("reviewpage.html", **context) 
-@app.route('/sf')
-def sf():
+@app.route('/sf', methods = ['GET'])
+def sl():
   return render_template("searchlocation.html")
-@app.route('/rs')
+@app.route('/rs', methods = ['GET'])
 def rs():
   return render_template("reviewsearch.html")
-@app.route('/pf')
+@app.route('/pf', methods = ['GET'])
 def pf():
   return render_template("prefs.html")  
 @app.route('/logout')
