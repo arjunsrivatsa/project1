@@ -346,7 +346,7 @@ def adduser():
   print(theusername)
   if g.conn.execute("select users.username from users where users.username = %1" %theusername):
     return render_template('errorgen.html', error = 'Cannot have duplicate username')
-  result_max = list(g.conn.execute('SELECT MAX(users.userid) from users')
+  result_max = list(g.conn.execute('SELECT MAX(users.userid) from users'))
   for r in result_max: 
     the_max_id = r[0]
   new_id = the_max_id +1
