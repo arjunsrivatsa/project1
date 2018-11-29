@@ -216,7 +216,7 @@ def add():
   print name
   cmd = 'INSERT INTO location(name) VALUES (:name1)';
   g.conn.execute(text(cmd), name1 = name);
-  return redirect('/')
+  return render_template('index.html')
 @app.route('/exploreusers')
 def userpage(): 
   return render_template("userpage.html")
@@ -264,7 +264,7 @@ def writerev():
   global uid
   global validUser
   if not validUser:
-    return redirect('/')
+    return render_template('index.html')
   text = request.form['thereview']
   name = request.form['locname']
   d= g.conn.execute("select location.name, location.lid from location where location.name = %1;", (name,))
@@ -351,22 +351,21 @@ def adduser():
   new_id = the_max_id +1
   cmd = "INSERT INTO users VALUES (:new_id, :name1)"
   g.conn.execute(text(cmd), new_id = new_id, name1 = theusername)
-  return redirect('/')
+  return render_template("index.html")
 @app.route('/login', methods = ['POST'])
 def login():
   global uid
   global validUser
-  if not validUser:
-    username = request.form['name']
-    print(username)
-    cmd = 'SELECT count(*), users.userid FROM users WHERE users.username = :name1 GROUP BY users.userid'
-    result = g.conn.execute(text(cmd), name1 = username)
-    for r in result:
-      print(r[0])
-      if(r[0]== 0):
-       return render_template("usererror.html")
-      else: 
-        uid = r[1]
+  username = request.form['name']
+  print(username)
+  cmd = 'SELECT count(*), users.userid FROM users WHERE users.username = :name1 GROUP BY users.userid'
+  result = g.conn.execute(text(cmd), name1 = username)
+  for r in result:
+    print(r[0])
+    if not r:
+      return render_template("usererror.html")
+    else: 
+      uid = r[1]
       validUser = True
   query_to_get_user_data = "SELECT users.username from users where users.userid = :useridtocheck"
   data = []
@@ -394,13 +393,13 @@ def login():
   return render_template("reviewpage.html", **context) 
 @app.route('/sf', methods = ['POST'])
 def sf():
-	return render_template("searchlocation.html")
+  return render_template("searchlocation.html")
 @app.route('/rs', methods = ['POST'])
 def rs():
-	return render_template("reviewsearch.html")
+  return render_template("reviewsearch.html")
 @app.route('/pf', methods = ['POST'])
 def pf():
-	return render_template("prefs.html")	
+  return render_template("prefs.html")  
 @app.route('/logout', methods = ['POST'])
 def logout():
   global uid
@@ -436,13 +435,9 @@ if __name__ == "__main__":
     """
     This function handles command line parameters.
     Run the server using
-
         python server.py
-
     Show the help text using
-
         python server.py --help
-
     """
 
     HOST, PORT = host, port
