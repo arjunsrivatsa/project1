@@ -6,14 +6,12 @@
     <div>{{n}}</div>
     {% endfor %}
   </div>
+ <h2> search for reviews </h2>
+ <p><a href="/reviewsearch.html">Write or read reviews</a></p>
  <h2> write below to add your own review</h2>
- <form method="POST" action="/checkuserreview">
- <p>Username: <input type="text" name="usname"> <input type="submit" value="Add"></p>
+ <form method="POST" action="/writereview"><div>
+ 	<input type="text" name="locname" placeholder="Location Name"></div>
+ <p>Review: <input type="text" name="thereview"> <input type="number" name="rate" placeholder="rating"><div>Optional: <input type="text" name="lat" placeholder="latitude"> <input type="text" name="long" placeholder="longitude"></div><input type="submit" value="Add"></p>
  </form>
- <form method="POST" action="/writereview">
- <p>Review: <input type="text" name="thereview"> <input type="submit" value="Add"></p>
- </form>
-
-
 </body>
 </html>

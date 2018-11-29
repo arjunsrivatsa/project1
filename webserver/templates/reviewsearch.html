@@ -1,0 +1,17 @@
+<html>
+<body>
+<h1>Search reviews</h1>
+
+<form method='POST' action="/reviewsearch">
+<input type="text" name="searchname" placeholder="Search by name"><div>
+<input type="radio" id="user" name ="kind" value = 1><label for="user"> Users</label>
+<input type="radio" id="loc" name ="kind" value = 2><label for="loc"> Locations</label></div>
+<input type="radio" id="rest" name= "type" value= "1"><label for="rest">Restaurants</label>
+<input type="radio" id="other" name = "type" value = "2"><label for="other"> Other Attractions</label>
+<input type="radio" id="all" name = "type" value = "3" checked="checked"><label for="all"> All</label></div>
+<button type="submit" value="Search">
+</form>
+
+
+</body>
+</html>

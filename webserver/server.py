@@ -20,6 +20,7 @@ from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response
 import numbers
+import math
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
 
@@ -42,6 +43,10 @@ DB_PASSWORD = "nn01vpi3"
 DB_SERVER = "w4111.cisxo09blonu.us-east-1.rds.amazonaws.com"
 
 DATABASEURI = "postgresql://"+DB_USER+":"+DB_PASSWORD+"@"+DB_SERVER+"/w4111"
+
+
+validUser = False
+uid = None
 
 
 #
@@ -165,9 +170,7 @@ def index():
 def another():
   cursor = g.conn.execute("SELECT location.name, location.cross_street from location")
   names = []
-  for result in cursor:
-    names.append(result)  # can also be accessed using result[0]
-  cursor.close()
+  names.extend(cursor)  # can also be accessed using result[0]
 
   #
   # Flask uses Jinja templates, which is an extension to HTML where you can
@@ -200,11 +203,9 @@ def another():
 
 @app.route('/review')
 def review():
- cur = g.conn.execute( " select users.username, review_written.post_content, review_written.rating from users inner join review_written on users.userid = review_written.userid");
+ cur = g.conn.execute( "select users.username, review_written.post_content, review_written.rating from users inner join review_written on users.userid = review_written.userid");
  revs = []
- for x in cur: 
-  revs.append(x)
- cur.close()
+ revs.extend(cur)
  context = dict(data = revs)
  return render_template("review.html", **context) 
 
@@ -221,15 +222,16 @@ def userpage():
   return render_template("userpage.html")
 @app.route('/checkuser', methods = ['POST'])
 def checkuser(): 
-  useridtocheck = request.form['uid']
+  useridtocheck = request.form['uname']
   print(useridtocheck)
   print(isinstance(useridtocheck,int))
-  query_to_check_if_user_exists = "SELECT count(*) from users where users.userid = :useridtocheck"
+  query_to_check_if_user_exists = "SELECT count(*), users.userid from users where users.username = :useridtocheck"
   result_of_check_query = g.conn.execute(text(query_to_check_if_user_exists), useridtocheck = useridtocheck)
   for r in result_of_check_query: 
     if (r[0] == 0):
       return render_template("errorpage.html")
     else:
+      useridtocheck = r[1]
       query_to_get_user_data = "SELECT users.username from users where users.userid = :useridtocheck"
       data = []
       result_of_query_for_userdata = g.conn.execute(text(query_to_get_user_data), useridtocheck = useridtocheck)
@@ -257,22 +259,118 @@ def checkuser():
         uq.append(r) 
       context = dict(data = data, userlikesdata = userlikesdata, uservisited = uservisited, userrec = userrec, uq = uq)
       return render_template("displayuser.html", **context)
+@app.route('/writereview', methods = ['POST'])
+def writerev():
+  global uid
+  global validUser
+  if not validUser:
+    return redirect('/')
+  text = request.form['thereview']
+  name = request.form['locname']
+  d= g.conn.execute("select location.name, location.lid from location where location.name = %1;", (locname,)):
+  if d[0]:
+    lid = d[1]
+  else:
+    return render_template('errorgen.html', error = 'No such location')
+  max_postid = g.conn.execute('Select MAX(location.lid) from location')[0] + 1
+  cmd = 'INSERT INTO review_written VALUES (:uid, :pn, :pc, :lat, :long, :lid,:rate);'
+  g.conn.execute(text(cmd), uid = newlocation, pn = max_postid, pc=text, lat = request.form['lat'], long = request.form['long'], lid = lid, rate = request.form['rate'])
+  return redirect('/login')
+@app.route('/reviewsearch', methods = ['POST'])
+def sreview():
+  search = request.form['searchname']
+  cmd = 'SELECT us.username, rw.post_content, lc.name, rw.rating'
+  if request.form['type'] != 1:
+   cmd +=', mg.entertainment_type'
+  if request.form['type'] != 2:
+   cmd += ', rt.cuisine'
+  cmd +=' from users us left join review_written rw on us.userid = rw.userid left join location lc on rw.lid = lc.lid'
+  if request.form['type'] != 1:
+   cmd +=' left join museum_gallery mg on mg.lid = lc.lid'
+  if request.form['type'] != 2:
+   cmd += ' left join restaurant rt on rt.lid = lc.lid'
+  if request.form['kind'] = 1:
+   cmd += 'WHERE us.username like :search'
+  else: cmd += 'WHERE lc.name like :search'
+
+  cmd +=';'
+  data = g.conn.execute(cmd, search = search)
+  header = ['Username', 'Review', 'Location', 'Rating']
+  if request.form['type'] != 1:
+    header.extend['Type']
+  if request.form['type'] !=2:
+    header.extend['Cuisine']
+  context = dict(header = header, data = data)
+  return render_template('results.html', **context)
+@app.route('/reviewsearch', methods = ['POST'])
+def sreview():
+  search = request.form['searchname']
+  cmd = 'SELECT us.username, rw.post_content, lc.name, rw.rating'
+  if int(request.form['type']) != 1:
+   cmd +=', mg.entertainment_type'
+  if int(request.form['type']) != 2:
+   cmd += ', rt.cuisine'
+  cmd +=' from users us left join review_written rw on us.userid = rw.userid left join location lc on rw.lid = lc.lid'
+  if int(request.form['type']) != 1:
+   cmd +=' left join museum_gallery mg on mg.lid = lc.lid'
+  if int(request.form['type']) != 2:
+   cmd += ' left join restaurant rt on rt.lid = lc.lid'
+  if int(request.form['kind']) = 1:
+   cmd += 'WHERE us.username like :search'
+  else: cmd += 'WHERE lc.name like :search'
+
+  cmd +=';'
+  data = g.conn.execute(cmd, search = search)
+  header = ['Username', 'Review', 'Location', 'Rating']
+  if request.form['type'] != 1:
+    header.extend['Type']
+  if request.form['type'] !=2:
+    header.extend['Cuisine']
+  context = dict(header = header, data = data)
+  return render_template('results.html', **context)
+@app.route('/locationsearch', methods = ['POST'])
+def locsearch():
+  search = request.form['searchname']
+  cmd = 'SELECT lc.latitude, lc.longitude, lc.cross_street, lc.name'
+  if int(request.form['type']) != 1:
+   cmd +=', mg.entertainment_type'
+  if int(request.form['type']) != 2:
+   cmd += ', rt.cuisine'
+  cmd +=' from users us left join review_written rw on us.userid = rw.userid left join location lc on rw.lid = lc.lid'
+  if int(request.form['type']) != 1:
+   cmd +=' left join museum_gallery mg on mg.lid = lc.lid'
+  if int(request.form['type']) != 2:
+   cmd += ' left join restaurant rt on rt.lid = lc.lid'
+  if search: cmd += 'WHERE lc.name like :search'
+  cmd +=';'
+  data = g.conn.execute(cmd, search = search)
+  header = ['latitude', 'longitude', 'Street', 'Name']
+  if int(request.form['type']) != 1:
+    header.extend['Type']
+  if int(request.form['type']) !=2:
+    header.extend['Cuisine']
+  context = dict(header = header, data = data)
+  return render_template('results.html', **context)
 @app.route('/submitlocation', methods = ['POST'])
 def submitlocation():
   thelocation = request.form['nameoflocation']
   print(thelocation)
+  if g.conn.execute("select location.name from location where location.name = %1;", (thelocation,)):
+    return render_template('errorgen.html', error = 'Cannot have duplicate location name')
   max_location = g.conn.execute('Select MAX(location.lid) from location')
   for r in max_location: 
     themaxloc = r[0]
   newlocation = themaxloc+1
   print(newlocation)
-  cmd = "INSERT into location values (-40,90,:newlocation1,'90th street',:thelocation1)"
-  g.conn.execute(text(cmd), newlocation1 = newlocation, thelocation1 = thelocation)
+  cmd = "INSERT into location values (:lat,:long,:index,:cross_street,:thelocation1)"
+  g.conn.execute(text(cmd), index = newlocation, thelocation1 = thelocation, lat = request.form['lat'], long = request.form['long'], cross_street = request.form['street'])
   return redirect('/another')
 @app.route('/adduser', methods = ['POST'])
 def adduser(): 
   theusername = request.form['uname']
   print(theusername)
+  if g.conn.execute("select users.username from users where users.username = %1;", (theusername,)):
+    return render_template('errorgen.html', error = 'Cannot have duplicate username')
   result_max = g.conn.execute('SELECT MAX(users.userid) from users')
   for r in result_max: 
     the_max_id = r[0]
@@ -282,46 +380,68 @@ def adduser():
   return redirect('/')
 @app.route('/login', methods = ['POST'])
 def login():
-  username = request.form['name']
-  print(username)
-  cmd = 'SELECT count(*) FROM users WHERE users.username = :name1'
-  result = g.conn.execute(text(cmd), name1 = username)
-  for r in result:
-   print(r[0])
-   if(r[0]== 0):
-    return render_template("usererror.html")
-   else: 
-    findid = "select users.userid from users where users.username = :usernametocheck"
-    cursor = g.conn.execute(text(findid), usernametocheck = username)
-    for result in cursor:
-      useridtocheck = result[0]
-    query_to_get_user_data = "SELECT users.username from users where users.userid = :useridtocheck"
-    data = []
-    result_of_query_for_userdata = g.conn.execute(text(query_to_get_user_data), useridtocheck = useridtocheck)
-    for r in result_of_query_for_userdata:
-      data.append(r)
-    qforcuisine = "SELECT user_likes_food.cuisine from user_likes_food where user_likes_food.userid = :useridtocheck"
-    userlikesdata = []
-    resultofqforcuisine = g.conn.execute(text(qforcuisine), useridtocheck = useridtocheck)
-    for r in resultofqforcuisine:
-      userlikesdata.append(r)
-    qforvisit = "select location.name, user_visit.date, user_visit.time from user_visit natural join location where user_visit.userid = :useridtocheck"
-    uservisited = []
-    resultofqforvisit = g.conn.execute(text(qforvisit), useridtocheck = useridtocheck)
-    for r in resultofqforvisit:
-      uservisited.append(r)
-    qforrec = "select location.name from recommendation_given natural join location where recommendation_given.userid = :useridtocheck"
-    userrec = []
-    resultofqforrec = g.conn.execute(text(qforrec), useridtocheck = useridtocheck)
-    for r in resultofqforrec:
-      userrec.append(r)
-    qforq = " select location.name from queue_placed natural join location where queue_placed.userid = :useridtocheck"
-    uq = []
-    resultofqforq = g.conn.execute(text(qforq), useridtocheck = useridtocheck)
-    for r in resultofqforq:
-      uq.append(r)
-    context = dict(data = data, userlikesdata = userlikesdata, uservisited = uservisited, userrec = userrec, uq = uq)
-    return render_template("reviewpage.html", **context) 
+  global uid
+  global validUser
+  if not validUser:
+    username = request.form['name']
+    print(username)
+    cmd = 'SELECT count(*), users.userid FROM users WHERE users.username = :name1'
+    result = g.conn.execute(text(cmd), name1 = username)
+    for r in result:
+      print(r[0])
+      if(r[0]== 0):
+       return render_template("usererror.html")
+      else: 
+        uid = r[1]
+      validUser = True
+  query_to_get_user_data = "SELECT users.username from users where users.userid = :useridtocheck"
+  data = []
+  result_of_query_for_userdata = g.conn.execute(text(query_to_get_user_data), useridtocheck = uid)
+    data.extend(result_of_query_for_userdata)
+  qforcuisine = "SELECT user_likes_food.cuisine from user_likes_food where user_likes_food.userid = :useridtocheck"
+  userlikesdata = []
+  resultofqforcuisine = g.conn.execute(text(qforcuisine), useridtocheck = uid)
+  userlikesdata.extend(resultofqforcuisine)
+  userlikesdata = list(set(userlikesdata))
+  qforattractions = "SELECT user_likes_food.cuisine from user_likes_food where user_likes_food.userid = :useridtocheck"
+  qforvisit = "select location.name, user_visit.date, user_visit.time from user_visit natural join location where user_visit.userid = :useridtocheck"
+  uservisited = []
+  resultofqforvisit = g.conn.execute(text(qforvisit), useridtocheck = uid)
+  uservisited.extend(resultofqforvisit)
+  qforrec = "select location.name from recommendation_given natural join location where recommendation_given.userid = :useridtocheck"
+  userrec = []
+  resultofqforrec = g.conn.execute(text(qforrec), useridtocheck = uid)
+  userrec.extend(resultofqforrec)
+  qforq = " select location.name from queue_placed natural join location where queue_placed.userid = :useridtocheck"
+  uq = []
+  resultofqforq = g.conn.execute(text(qforq), useridtocheck = uid)
+  uq.extend(resultofqforq)
+  context = dict(data = data, userlikesdata = userlikesdata, uservisited = uservisited, userrec = userrec, uq = uq)
+  return render_template("reviewpage.html", **context) 
+
+@app.route('/logout', methods = ['POST'])
+def logout():
+  global uid
+  uid = None
+  global validUser
+  validUser = False
+  return redirect("/")
+
+@app.route('/prefs', methods = ['POST'])
+def editprefs():
+    global uid
+    global validUser
+    if not validUser:
+      return redirect("/") #login
+    cmd = ''
+    if not request.form['type']:
+      return render_template('errorgen.html', error = 'must have type, and if a restaurant must have cuisine')
+    if request.form['type'] = "restaurant" and request.form['cuisine']:
+      cmd = 'INSERT INTO user_likes_food VALUES (:cuisine, :uid);'
+    cmd += 'INSERT INTO user_likes_type VALUES (:uid, :type);'
+    g.conn.execute(cmd, cuisine = request.form['cuisine'], uid = uid, type = request.form['type'])
+    return redirect('/login')
+
 if __name__ == "__main__":
   import click
 

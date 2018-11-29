@@ -6,15 +6,15 @@
 {% for n in data%}
 <div>{{n}}</div>
 {% endfor %}
-<h3> Here's a types of food the user likes </h3>
+<h3> The types of food and attractions the user prefers </h3>
 {% for n in userlikesdata%}
 <div>{{n}}</div>
 {% endfor %}
-<h3> Here's the places the user has visited</h3>
+<h3> Places the user has visited</h3>
 {% for n in uservisited%}
 <div>{{n}}</div>
 {% endfor %}
-<h3> Here's the places the user has recommends</h3>
+<h3> Recommendations</h3>
 {% for n in userrec%}
 <div>{{n}}</div>
 {% endfor %}
@@ -23,6 +23,12 @@
 <div>{{n}}</div>
 {% endfor %}
 </div>
-<p><a href="/review">Click here to see and write reviews</a></p>
+<p><a href="/review">Write or read reviews</a></p>
+<p><a href="/searchlocation.html">Search through attractions</a></p>
+<p><a href="/exploreusers">Search for a user</a></p>
+<p><a href="/prefs.html">Add preferences</a></p>
+<p><a href="/another">Add a new location</a></p>
+<button action='/logout'>Logout</button>
+
 </body>
 </html>

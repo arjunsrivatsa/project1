@@ -1,14 +1,16 @@
-
+<!DOCTYPE html>
+<html>
 <body>
-  <h1>Welcome to New York Attractions! Here's a list of attractions around you</h1>
+  <h1>Welcome to Purview! Here's a list of attractions around you</h1>
   <div>{{data}}</div>
   <div>
     {% for n in data %}
     <div>{{n}}</div>
     {% endfor %}
   </div>
-  <h3>add a location!</h3>
+  <h3>add a location for others to visit!</h3>
   <form method="POST" action="/submitlocation">
-  <p>name of location: <input type="text" name="nameoflocation"> <input type="submit" value="Add"></p>
+  <p>name of location: <input type="text" name="nameoflocation"><input type="text" name="street" placeholder="street"><input type="text" name="lat" placeholder="latitude"> <input type="text" name="long" placeholder="longitude"> <input type="submit" value="Add"></p>
   </form>
 </body>
+</html>
