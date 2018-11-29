@@ -289,7 +289,7 @@ def sreview():
    cmd +=' left join museum_gallery mg on mg.lid = lc.lid'
   if request.form['type'] != 2:
    cmd += ' left join restaurant rt on rt.lid = lc.lid'
-  if request.form['kind'] = 1:
+  if request.form['kind'] == 1:
    cmd += 'WHERE us.username like :search'
   else: cmd += 'WHERE lc.name like :search'
 
@@ -315,7 +315,7 @@ def sreview():
    cmd +=' left join museum_gallery mg on mg.lid = lc.lid'
   if int(request.form['type']) != 2:
    cmd += ' left join restaurant rt on rt.lid = lc.lid'
-  if int(request.form['kind']) = 1:
+  if int(request.form['kind']) == 1:
    cmd += 'WHERE us.username like :search'
   else: cmd += 'WHERE lc.name like :search'
 
@@ -436,7 +436,7 @@ def editprefs():
     cmd = ''
     if not request.form['type']:
       return render_template('errorgen.html', error = 'must have type, and if a restaurant must have cuisine')
-    if request.form['type'] = "restaurant" and request.form['cuisine']:
+    if request.form['type'] == "restaurant" and request.form['cuisine']:
       cmd = 'INSERT INTO user_likes_food VALUES (:cuisine, :uid);'
     cmd += 'INSERT INTO user_likes_type VALUES (:uid, :type);'
     g.conn.execute(cmd, cuisine = request.form['cuisine'], uid = uid, type = request.form['type'])
