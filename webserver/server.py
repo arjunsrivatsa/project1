@@ -267,7 +267,7 @@ def writerev():
     return redirect('/')
   text = request.form['thereview']
   name = request.form['locname']
-  d= g.conn.execute("select location.name, location.lid from location where location.name = %1;", (locname,))
+  d= g.conn.execute("select location.name, location.lid from location where location.name = %1;", (name,))
   if d[0]:
     lid = d[1]
   else:
@@ -399,14 +399,14 @@ def logout():
   uid = None
   global validUser
   validUser = False
-  return redirect("/")
+  return index()
 
 @app.route('/prefs', methods = ['POST'])
 def editprefs():
     global uid
     global validUser
     if not validUser:
-      return redirect("/") #login
+      return index() #login
     cmd = ''
     if not request.form['type']:
       return render_template('errorgen.html', error = 'must have type, and if a restaurant must have cuisine')
@@ -414,7 +414,7 @@ def editprefs():
       cmd = 'INSERT INTO user_likes_food VALUES (:cuisine, :uid);'
     cmd += 'INSERT INTO user_likes_type VALUES (:uid, :type);'
     g.conn.execute(cmd, cuisine = request.form['cuisine'], uid = uid, type = request.form['type'])
-    return redirect('/login')
+    return render_template("reviewpage.html")
 
 if __name__ == "__main__":
   import click
