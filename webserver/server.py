@@ -268,7 +268,7 @@ def writereview():
   text = request.form['thereview']
   name = request.form['locname']
   check = []
-  d= g.conn.execute('select location.name, location.lid from location where location.name = :aefge', aefge=(name))
+  d= g.conn.execute(text('select location.name, location.lid from location where location.name = :aefge'), aefge=name)
   check.extend(d)
   if check[0]:
     lid = check[1]
@@ -331,7 +331,7 @@ def locationsearch():
 def submitlocation():
   thelocation = request.form['nameoflocation']
   print(thelocation)
-  if [].extend(g.conn.execute('select location.name from location where location.name = :aefge', aefge=(thelocation))):
+  if [].extend(g.conn.execute(text('select location.name from location where location.name = :aefge'), aefge=thelocation)):
     return render_template('errorgen.html', error = 'Cannot have duplicate location name')
   max_location = [].extend(g.conn.execute('Select MAX(location.lid) from location'))
   for r in max_location: 
@@ -345,7 +345,7 @@ def submitlocation():
 def adduser(): 
   theusername = request.form['uname']
   print(theusername)
-  if g.conn.execute('select users.username from users where users.username = :aefge', aefge=(theusername)):
+  if g.conn.execute(text('select users.username from users where users.username = :aefge'), aefge=theusername):
     return render_template('errorgen.html', error = 'Cannot have duplicate username')
   result_max = [].extend(g.conn.execute('SELECT MAX(users.userid) from users'))
   for r in result_max: 
@@ -433,7 +433,7 @@ def wl():
 @app.route('/addwl', methods = ['POST'])
 def addwl():
   global uid
-  locaname = [].extend(g.conn.execute(text('SELECT location.lid from location where location.name = :aefge'), aefge=(request.form['type'])))[0]
+  locaname = [].extend(g.conn.execute(text('SELECT location.lid from location where location.name = :aefge'), aefge=request.form['type']))[0]
   if not locaname:
     return render_template("errorgen.html", error = "No matching location found.")
   cmd = 'INSERT into queue_placed VALUES (,:uid,:lid,)'
@@ -450,7 +450,7 @@ def history():
 def addh():
   global uid
 
-  locaname = [].extend(g.conn.execute(text('SELECT location.lid from location where location.name = :aefge'), aefge=(request.form['type'])))[0]
+  locaname = [].extend(g.conn.execute(text('SELECT location.lid from location where location.name = :aefge'), aefge=request.form['type']))[0]
   if not locaname:
     return render_template('errorgen.html', error = 'No matching location found.')
   cmd = 'INSERT into user_visit VALUES (:t,:da,:lid,:uid);'
