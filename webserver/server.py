@@ -351,7 +351,7 @@ def adduser():
   cmd = "INSERT INTO users VALUES (:new_id, :name1)"
   g.conn.execute(text(cmd), new_id = new_id, name1 = theusername)
   return render_template("index.html")
-@app.route('/login', methods = ['POST'])
+@app.route('/login', methods = ['POST']) #  
 def login():
   global uid
   global validUser
