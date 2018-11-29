@@ -226,9 +226,8 @@ def checkuser():
   print(useridtocheck)
   print(isinstance(useridtocheck,int))
   query_to_check_if_user_exists = "SELECT users.userid from users where users.username = :useridtocheck"
-  try:
-    r = g.conn.execute(text(query_to_check_if_user_exists), useridtocheck = useridtocheck)
-  except:
+  r = list(g.conn.execute(text(query_to_check_if_user_exists), useridtocheck = useridtocheck))
+  if not r[0]:
     return render_template("errorgen.html", error = "Username does not exist.")
   for i in r:
     useridtocheck = i
@@ -433,7 +432,7 @@ def wl():
 @app.route('/addwl', methods = ['POST'])
 def addwl():
   global uid
-  locaname = g.conn.execute('SELECT location.lid from location where location.name = %1' % request.form['type'])[0]
+  locaname = list(g.conn.execute('SELECT location.lid from location where location.name = %1' % request.form['type']))[0]
   if not locaname:
     return render_template("errorgen.html", error = "No matching location found.")
   cmd = 'INSERT into queue_placed VALUES (,:uid,:lid,)'
@@ -450,7 +449,7 @@ def history():
 def addh():
   global uid
 
-  locaname = g.conn.execute('SELECT location.lid from location where location.name = %1' % request.form['type'])[0]
+  locaname = list(g.conn.execute('SELECT location.lid from location where location.name = %1' % request.form['type']))[0]
   if not locaname:
     return render_template("errorgen.html", error = "No matching location found.")
   cmd = 'INSERT into user_visit VALUES (:t,:da,:lid,:uid);'
