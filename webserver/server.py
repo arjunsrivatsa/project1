@@ -42,7 +42,7 @@ DB_PASSWORD = "nn01vpi3"
 
 DB_SERVER = "w4111.cisxo09blonu.us-east-1.rds.amazonaws.com"
 
-DATABASEURI = "postgresql://"+DB_USER+":"+DB_PASSWORD+"@"+DB_SERVER+"/w4111?charset=utf8mb4"
+DATABASEURI = "postgresql://"+DB_USER+":"+DB_PASSWORD+"@"+DB_SERVER+"/w4111"
 
 
 validUser = False
@@ -52,7 +52,7 @@ uid = None
 #
 # This line creates a database engine that knows how to connect to the URI above
 #
-engine = create_engine(DATABASEURI)
+engine = create_engine(DATABASEURI, convert_unicode=True)
 
 
 # Here we create a test table and insert some values in it
