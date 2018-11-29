@@ -280,32 +280,6 @@ def writerev():
 def sreview():
   search = request.form['searchname']
   cmd = 'SELECT us.username, rw.post_content, lc.name, rw.rating'
-  if request.form['type'] != 1:
-   cmd +=', mg.entertainment_type'
-  if request.form['type'] != 2:
-   cmd += ', rt.cuisine'
-  cmd +=' from users us left join review_written rw on us.userid = rw.userid left join location lc on rw.lid = lc.lid'
-  if request.form['type'] != 1:
-   cmd +=' left join museum_gallery mg on mg.lid = lc.lid'
-  if request.form['type'] != 2:
-   cmd += ' left join restaurant rt on rt.lid = lc.lid'
-  if request.form['kind'] == 1:
-   cmd += 'WHERE us.username like :search'
-  else: cmd += 'WHERE lc.name like :search'
-
-  cmd +=';'
-  data = g.conn.execute(cmd, search = search)
-  header = ['Username', 'Review', 'Location', 'Rating']
-  if request.form['type'] != 1:
-    header.extend['Type']
-  if request.form['type'] !=2:
-    header.extend['Cuisine']
-  context = dict(header = header, data = data)
-  return render_template('results.html', **context)
-@app.route('/reviewsearch', methods = ['POST'])
-def sreview():
-  search = request.form['searchname']
-  cmd = 'SELECT us.username, rw.post_content, lc.name, rw.rating'
   if int(request.form['type']) != 1:
    cmd +=', mg.entertainment_type'
   if int(request.form['type']) != 2:
