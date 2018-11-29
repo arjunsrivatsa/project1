@@ -226,7 +226,8 @@ def checkuser():
   print(useridtocheck)
   print(isinstance(useridtocheck,int))
   query_to_check_if_user_exists = 'SELECT users.userid from users where users.username = :useridtocheck'
-  r = list(g.conn.execute(text(query_to_check_if_user_exists), useridtocheck = useridtocheck))
+  r = []
+  r.extend(g.conn.execute(text(query_to_check_if_user_exists), useridtocheck = useridtocheck))
   if not r[0]:
     return render_template('errorgen.html', error = 'Username does not exist.')
   for i in r:
@@ -295,7 +296,7 @@ def reviewsearch():
   else: cmd += 'WHERE lc.name like :search'
 
   cmd +=';'
-  data = list(g.conn.execute(cmd, search = search))
+  data = [].extend(g.conn.execute(cmd, search = search))
   header = ['Username', 'Review', 'Location', 'Rating']
   if request.form['type'] != 1:
     header.extend['Type']
@@ -318,7 +319,7 @@ def locationsearch():
    cmd += ' left join restaurant rt on rt.lid = lc.lid'
   if search: cmd += 'WHERE lc.name like :search'
   cmd +=';'
-  data = list(g.conn.execute(cmd, search = search))
+  data = [].extend(g.conn.execute(cmd, search = search))
   header = ['latitude', 'longitude', 'Street', 'Name']
   if int(request.form['type']) != 1:
     header.extend['Type']
@@ -330,9 +331,9 @@ def locationsearch():
 def submitlocation():
   thelocation = request.form['nameoflocation']
   print(thelocation)
-  if list(g.conn.execute('select location.name from location where location.name = :aefge', aefge=(thelocation))):
+  if [].extend(g.conn.execute('select location.name from location where location.name = :aefge', aefge=(thelocation))):
     return render_template('errorgen.html', error = 'Cannot have duplicate location name')
-  max_location = list(g.conn.execute('Select MAX(location.lid) from location'))
+  max_location = [].extend(g.conn.execute('Select MAX(location.lid) from location'))
   for r in max_location: 
     themaxloc = r[0]
   newlocation = themaxloc+1
@@ -346,7 +347,7 @@ def adduser():
   print(theusername)
   if g.conn.execute('select users.username from users where users.username = :aefge', aefge=(theusername)):
     return render_template('errorgen.html', error = 'Cannot have duplicate username')
-  result_max = list(g.conn.execute('SELECT MAX(users.userid) from users'))
+  result_max = [].extend(g.conn.execute('SELECT MAX(users.userid) from users'))
   for r in result_max: 
     the_max_id = r[0]
   new_id = the_max_id +1
@@ -361,7 +362,7 @@ def login():
     username = request.form['name']
     print(username)
     cmd = 'SELECT users.userid FROM users WHERE users.username = :name1'
-    result = list(g.conn.execute(text(cmd), name1 = username))
+    result = [].extend(g.conn.execute(text(cmd), name1 = username))
     if not result:
       return render_template('usererror.html')
     else: 
@@ -375,7 +376,7 @@ def login():
   userlikesdata = []
   resultofqforcuisine = g.conn.execute(text(qforcuisine), useridtocheck = uid)
   userlikesdata.extend(resultofqforcuisine)
-  userlikesdata = list(set(userlikesdata))
+  userlikesdata = [].extend(set(userlikesdata))
   qforattractions = 'SELECT user_likes_food.cuisine from user_likes_food where user_likes_food.userid = :useridtocheck'
   qforvisit = "select location.name, user_visit.date, user_visit.time from user_visit natural join location where user_visit.userid = :useridtocheck"
   uservisited = []
@@ -432,7 +433,7 @@ def wl():
 @app.route('/addwl', methods = ['POST'])
 def addwl():
   global uid
-  locaname = list(g.conn.execute(text('SELECT location.lid from location where location.name = :aefge'), aefge=(request.form['type'])))[0]
+  locaname = [].extend(g.conn.execute(text('SELECT location.lid from location where location.name = :aefge'), aefge=(request.form['type'])))[0]
   if not locaname:
     return render_template("errorgen.html", error = "No matching location found.")
   cmd = 'INSERT into queue_placed VALUES (,:uid,:lid,)'
@@ -449,7 +450,7 @@ def history():
 def addh():
   global uid
 
-  locaname = list(g.conn.execute(text('SELECT location.lid from location where location.name = :aefge'), aefge=(request.form['type'])))[0]
+  locaname = [].extend(g.conn.execute(text('SELECT location.lid from location where location.name = :aefge'), aefge=(request.form['type'])))[0]
   if not locaname:
     return render_template('errorgen.html', error = 'No matching location found.')
   cmd = 'INSERT into user_visit VALUES (:t,:da,:lid,:uid);'
