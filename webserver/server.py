@@ -267,7 +267,7 @@ def writerev():
     return redirect('/')
   text = request.form['thereview']
   name = request.form['locname']
-  d= g.conn.execute("select location.name, location.lid from location where location.name = %1;", (locname,)):
+  d= g.conn.execute("select location.name, location.lid from location where location.name = %1;", (locname,))
   if d[0]:
     lid = d[1]
   else:
