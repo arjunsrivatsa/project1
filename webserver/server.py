@@ -227,7 +227,7 @@ def checkuser():
   print(isinstance(useridtocheck,int))
   query_to_check_if_user_exists = "SELECT users.userid from users where users.username = :useridtocheck"
   try:
-    r = list(g.conn.execute(text(query_to_check_if_user_exists), useridtocheck = useridtocheck))
+    r = g.conn.execute(text(query_to_check_if_user_exists), useridtocheck = useridtocheck)
   except:
     return render_template("errorgen.html", error = "Username does not exist.")
   for i in r:
@@ -268,7 +268,7 @@ def writereview():
   text = request.form['thereview']
   name = request.form['locname']
   check = []
-  d= g.conn.execute("select location.name, location.lid from location where location.name = %1" +";" % name)
+  d= g.conn.execute("select location.name, location.lid from location where location.name = %1" % name)
   check.extend(d)
   if check[0]:
     lid = check[1]
@@ -331,7 +331,7 @@ def locationsearch():
 def submitlocation():
   thelocation = request.form['nameoflocation']
   print(thelocation)
-  if list(g.conn.execute("select location.name from location where location.name = %1" +";" %thelocation)):
+  if list(g.conn.execute("select location.name from location where location.name = %1" %thelocation)):
     return render_template('errorgen.html', error = 'Cannot have duplicate location name')
   max_location = list(g.conn.execute('Select MAX(location.lid) from location'))
   for r in max_location: 
@@ -345,9 +345,9 @@ def submitlocation():
 def adduser(): 
   theusername = request.form['uname']
   print(theusername)
-  if g.conn.execute("select users.username from users where users.username = %1" +";" %theusername):
+  if g.conn.execute("select users.username from users where users.username = %1" %theusername):
     return render_template('errorgen.html', error = 'Cannot have duplicate username')
-  result_max = list(g.conn.execute('SELECT MAX(users.userid) from users'))
+  result_max = list(g.conn.execute('SELECT MAX(users.userid) from users')
   for r in result_max: 
     the_max_id = r[0]
   new_id = the_max_id +1
@@ -433,7 +433,7 @@ def wl():
 @app.route('/addwl', methods = ['POST'])
 def addwl():
   global uid
-  locaname = g.conn.execute('SELECT location.lid from location where location.name = %1" +";' % request.form['type'])[0]
+  locaname = g.conn.execute('SELECT location.lid from location where location.name = %1' % request.form['type'])[0]
   if not locaname:
     return render_template("errorgen.html", error = "No matching location found.")
   cmd = 'INSERT into queue_placed VALUES (,:uid,:lid,)'
@@ -450,7 +450,7 @@ def history():
 def addh():
   global uid
 
-  locaname = g.conn.execute('SELECT location.lid from location where location.name = %1" +";' % request.form['type'])[0]
+  locaname = g.conn.execute('SELECT location.lid from location where location.name = %1' % request.form['type'])[0]
   if not locaname:
     return render_template("errorgen.html", error = "No matching location found.")
   cmd = 'INSERT into user_visit VALUES (:t,:da,:lid,:uid);'
