@@ -397,7 +397,7 @@ def login():
   query_to_get_user_data = "SELECT users.username from users where users.userid = :useridtocheck"
   data = []
   result_of_query_for_userdata = g.conn.execute(text(query_to_get_user_data), useridtocheck = uid)
-    data.extend(result_of_query_for_userdata)
+  data.extend(result_of_query_for_userdata)
   qforcuisine = "SELECT user_likes_food.cuisine from user_likes_food where user_likes_food.userid = :useridtocheck"
   userlikesdata = []
   resultofqforcuisine = g.conn.execute(text(qforcuisine), useridtocheck = uid)
