@@ -230,7 +230,8 @@ def checkuser():
     r = g.conn.execute(text(query_to_check_if_user_exists), useridtocheck = useridtocheck)
   except:
     return render_template("errorgen.html", error = "Username does not exist.")
-  useridtocheck = r[0]
+  for i in r:
+    useridtocheck = i
   query_to_get_user_data = "SELECT users.username from users where users.userid = :useridtocheck"
   data = []
   result_of_query_for_userdata = g.conn.execute(text(query_to_get_user_data), useridtocheck = useridtocheck)
@@ -266,9 +267,11 @@ def writereview():
     return render_template('index.html')
   text = request.form['thereview']
   name = request.form['locname']
-  d= g.conn.execute("select location.name, location.lid from location where location.name = %1;" % name)
-  if d[0]:
-    lid = d[1]
+  check = []
+  d= g.conn.execute("select location.name, location.lid from location where location.name = %1 ;" % name)
+  check.extend(d)
+  if check[0]:
+    lid = check[1]
   else:
     return render_template('errorgen.html', error = 'No such location')
   max_postid = g.conn.execute('Select MAX(location.lid) from location')[0] + 1
@@ -293,7 +296,7 @@ def reviewsearch():
   else: cmd += 'WHERE lc.name like :search'
 
   cmd +=';'
-  data = g.conn.execute(cmd, search = search)
+  data = list(g.conn.execute(cmd, search = search))
   header = ['Username', 'Review', 'Location', 'Rating']
   if request.form['type'] != 1:
     header.extend['Type']
@@ -316,7 +319,7 @@ def locationsearch():
    cmd += ' left join restaurant rt on rt.lid = lc.lid'
   if search: cmd += 'WHERE lc.name like :search'
   cmd +=';'
-  data = g.conn.execute(cmd, search = search)
+  data = list(g.conn.execute(cmd, search = search))
   header = ['latitude', 'longitude', 'Street', 'Name']
   if int(request.form['type']) != 1:
     header.extend['Type']
@@ -328,7 +331,7 @@ def locationsearch():
 def submitlocation():
   thelocation = request.form['nameoflocation']
   print(thelocation)
-  if g.conn.execute("select location.name from location where location.name = %1;" %thelocation):
+  if list(g.conn.execute("select location.name from location where location.name = %1 ;" %thelocation)):
     return render_template('errorgen.html', error = 'Cannot have duplicate location name')
   max_location = g.conn.execute('Select MAX(location.lid) from location')
   for r in max_location: 
@@ -342,7 +345,7 @@ def submitlocation():
 def adduser(): 
   theusername = request.form['uname']
   print(theusername)
-  if g.conn.execute("select users.username from users where users.username = %1;" %theusername):
+  if g.conn.execute("select users.username from users where users.username = %1 ;" %theusername):
     return render_template('errorgen.html', error = 'Cannot have duplicate username')
   result_max = g.conn.execute('SELECT MAX(users.userid) from users')
   for r in result_max: 
@@ -359,7 +362,7 @@ def login():
     username = request.form['name']
     print(username)
     cmd = 'SELECT users.userid FROM users WHERE users.username = :name1'
-    result = g.conn.execute(text(cmd), name1 = username)
+    result = list(g.conn.execute(text(cmd), name1 = username))
     if not result:
       return render_template("usererror.html")
     else: 
@@ -430,7 +433,7 @@ def wl():
 @app.route('/addwl', methods = ['POST'])
 def addwl():
   global uid
-  locaname = g.conn.execute('SELECT location.lid from location where location.name = %1;' % request.form['type'])[0]
+  locaname = g.conn.execute('SELECT location.lid from location where location.name = %1 ;' % request.form['type'])[0]
   if not locaname:
     return render_template("errorgen.html", error = "No matching location found.")
   cmd = 'INSERT into queue_placed VALUES (,:uid,:lid,)'
@@ -447,7 +450,7 @@ def history():
 def addh():
   global uid
 
-  locaname = g.conn.execute('SELECT location.lid from location where location.name = %1;' % request.form['type'])[0]
+  locaname = g.conn.execute('SELECT location.lid from location where location.name = %1 ;' % request.form['type'])[0]
   if not locaname:
     return render_template("errorgen.html", error = "No matching location found.")
   cmd = 'INSERT into user_visit VALUES (:t,:da,:lid,:uid);'
