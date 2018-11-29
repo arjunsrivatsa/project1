@@ -231,7 +231,7 @@ def checkuser():
   if not r[0]:
     return render_template('errorgen.html', error = 'Username does not exist.')
   for i in r:
-    useridtocheck = i
+    useridtocheck = i[0]
   query_to_get_user_data = 'SELECT users.username from users where users.userid = :useridtocheck'
   data = []
   result_of_query_for_userdata = g.conn.execute(text(query_to_get_user_data), useridtocheck = useridtocheck)
