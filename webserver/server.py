@@ -156,7 +156,7 @@ def index():
   # render_template looks in the templates/ folder for files.
   # for example, the below file reads template/index.html
   #
-  return render_template("index.html")
+  return render_template('index.html')
 
 #
 # This is an example of a different path.  You can see it at
@@ -168,7 +168,7 @@ def index():
 #
 @app.route('/another')
 def another():
-  cursor = g.conn.execute("SELECT location.name, location.cross_street from location")
+  cursor = g.conn.execute('SELECT location.name, location.cross_street from location')
   names = []
   names.extend(cursor)  # can also be accessed using result[0]
 
@@ -199,15 +199,15 @@ def another():
   #     {% endfor %}
   #
   context = dict(data = names)
-  return render_template("anotherfile.html", **context)
+  return render_template('anotherfile.html', **context)
 
 @app.route('/review')
 def review():
- cur = g.conn.execute( "select users.username, review_written.post_content, review_written.rating from users inner join review_written on users.userid = review_written.userid");
+ cur = g.conn.execute( 'select users.username, review_written.post_content, review_written.rating from users inner join review_written on users.userid = review_written.userid');
  revs = []
  revs.extend(cur)
  context = dict(data = revs)
- return render_template("review.html", **context) 
+ return render_template('review.html', **context) 
 
 # Example of adding new data to the database
 @app.route('/add', methods=['POST'])
@@ -219,45 +219,45 @@ def add():
   return render_template('index.html')
 @app.route('/exploreusers')
 def userpage(): 
-  return render_template("userpage.html")
+  return render_template('userpage.html')
 @app.route('/checkuser', methods = ['POST'])
 def checkuser(): 
   useridtocheck = request.form['uname']
   print(useridtocheck)
   print(isinstance(useridtocheck,int))
-  query_to_check_if_user_exists = "SELECT users.userid from users where users.username = :useridtocheck"
+  query_to_check_if_user_exists = 'SELECT users.userid from users where users.username = :useridtocheck'
   r = list(g.conn.execute(text(query_to_check_if_user_exists), useridtocheck = useridtocheck))
   if not r[0]:
-    return render_template("errorgen.html", error = "Username does not exist.")
+    return render_template('errorgen.html', error = 'Username does not exist.')
   for i in r:
     useridtocheck = i
-  query_to_get_user_data = "SELECT users.username from users where users.userid = :useridtocheck"
+  query_to_get_user_data = 'SELECT users.username from users where users.userid = :useridtocheck'
   data = []
   result_of_query_for_userdata = g.conn.execute(text(query_to_get_user_data), useridtocheck = useridtocheck)
   for r in result_of_query_for_userdata: 
     data.append(r)
-  qforcuisine = "SELECT user_likes_food.cuisine from user_likes_food where user_likes_food.userid = :useridtocheck"
+  qforcuisine = 'SELECT user_likes_food.cuisine from user_likes_food where user_likes_food.userid = :useridtocheck'
   userlikesdata = []
   resultofqforcuisine = g.conn.execute(text(qforcuisine), useridtocheck = useridtocheck)
   for r in resultofqforcuisine:
     userlikesdata.append(r)
-  qforvisit = "select location.name, user_visit.date, user_visit.time from user_visit natural join location where user_visit.userid = :useridtocheck"
+  qforvisit = 'select location.name, user_visit.date, user_visit.time from user_visit natural join location where user_visit.userid = :useridtocheck'
   uservisited = []
   resultofqforvisit = g.conn.execute(text(qforvisit), useridtocheck = useridtocheck)
   for r in resultofqforvisit:
     uservisited.append(r)
-  qforrec = "select location.name from recommendation_given natural join location where recommendation_given.userid = :useridtocheck"
+  qforrec = 'select location.name from recommendation_given natural join location where recommendation_given.userid = :useridtocheck'
   userrec = []
   resultofqforrec = g.conn.execute(text(qforrec), useridtocheck = useridtocheck)
   for r in resultofqforrec: 
     userrec.append(r)
-  qforq = " select location.name from queue_placed natural join location where queue_placed.userid = :useridtocheck"
+  qforq = ' select location.name from queue_placed natural join location where queue_placed.userid = :useridtocheck'
   uq = []
   resultofqforq = g.conn.execute(text(qforq), useridtocheck = useridtocheck)
   for r in resultofqforq: 
     uq.append(r) 
   context = dict(data = data, userlikesdata = userlikesdata, uservisited = uservisited, userrec = userrec, uq = uq)
-  return render_template("displayuser.html", **context)
+  return render_template('displayuser.html', **context)
 @app.route('/writereview', methods = ['POST'])
 def writereview():
   global uid
@@ -267,7 +267,7 @@ def writereview():
   text = request.form['thereview']
   name = request.form['locname']
   check = []
-  d= g.conn.execute("select location.name, location.lid from location where location.name = :aefge", aefge=(name))
+  d= g.conn.execute('select location.name, location.lid from location where location.name = :aefge', aefge=(name))
   check.extend(d)
   if check[0]:
     lid = check[1]
@@ -330,29 +330,29 @@ def locationsearch():
 def submitlocation():
   thelocation = request.form['nameoflocation']
   print(thelocation)
-  if list(g.conn.execute("select location.name from location where location.name = :aefge", aefge=(thelocation))):
+  if list(g.conn.execute('select location.name from location where location.name = :aefge', aefge=(thelocation))):
     return render_template('errorgen.html', error = 'Cannot have duplicate location name')
   max_location = list(g.conn.execute('Select MAX(location.lid) from location'))
   for r in max_location: 
     themaxloc = r[0]
   newlocation = themaxloc+1
   print(newlocation)
-  cmd = "INSERT into location values (:lat,:long,:index,:cross_street,:thelocation1)"
+  cmd = 'INSERT into location values (:lat,:long,:index,:cross_street,:thelocation1)'
   g.conn.execute(text(cmd), index = newlocation, thelocation1 = thelocation, lat = request.form['lat'], long = request.form['long'], cross_street = request.form['street'])
   return redirect('/another')
 @app.route('/adduser', methods = ['POST'])
 def adduser(): 
   theusername = request.form['uname']
   print(theusername)
-  if g.conn.execute("select users.username from users where users.username = :aefge", aefge=(theusername)):
+  if g.conn.execute('select users.username from users where users.username = :aefge', aefge=(theusername)):
     return render_template('errorgen.html', error = 'Cannot have duplicate username')
   result_max = list(g.conn.execute('SELECT MAX(users.userid) from users'))
   for r in result_max: 
     the_max_id = r[0]
   new_id = the_max_id +1
-  cmd = "INSERT INTO users VALUES (:new_id, :name1)"
+  cmd = 'INSERT INTO users VALUES (:new_id, :name1)'
   g.conn.execute(text(cmd), new_id = new_id, name1 = theusername)
-  return render_template("index.html")
+  return render_template('index.html')
 @app.route('/login', methods = ['POST']) #  
 def login():
   global uid
@@ -363,20 +363,20 @@ def login():
     cmd = 'SELECT users.userid FROM users WHERE users.username = :name1'
     result = list(g.conn.execute(text(cmd), name1 = username))
     if not result:
-      return render_template("usererror.html")
+      return render_template('usererror.html')
     else: 
       uid = result[0]
       validUser = True
-  query_to_get_user_data = "SELECT users.username from users where users.userid = :useridtocheck"
+  query_to_get_user_data = 'SELECT users.username from users where users.userid = :useridtocheck'
   data = []
   result_of_query_for_userdata = g.conn.execute(text(query_to_get_user_data), useridtocheck = uid)
   data.extend(result_of_query_for_userdata)
-  qforcuisine = "SELECT user_likes_food.cuisine from user_likes_food where user_likes_food.userid = :useridtocheck"
+  qforcuisine = 'SELECT user_likes_food.cuisine from user_likes_food where user_likes_food.userid = :useridtocheck'
   userlikesdata = []
   resultofqforcuisine = g.conn.execute(text(qforcuisine), useridtocheck = uid)
   userlikesdata.extend(resultofqforcuisine)
   userlikesdata = list(set(userlikesdata))
-  qforattractions = "SELECT user_likes_food.cuisine from user_likes_food where user_likes_food.userid = :useridtocheck"
+  qforattractions = 'SELECT user_likes_food.cuisine from user_likes_food where user_likes_food.userid = :useridtocheck'
   qforvisit = "select location.name, user_visit.date, user_visit.time from user_visit natural join location where user_visit.userid = :useridtocheck"
   uservisited = []
   resultofqforvisit = g.conn.execute(text(qforvisit), useridtocheck = uid)
@@ -420,7 +420,7 @@ def prefs():
   if request.form['type'] == "restaurant" and request.form['cuisine']:
     cmd = 'INSERT INTO user_likes_food VALUES (:cuisine, :uid);'
   cmd += 'INSERT INTO user_likes_type VALUES (:uid, :type);'
-  g.conn.execute(cmd, cuisine = request.form['cuisine'], uid = uid, type = request.form['type'])
+  g.conn.execute(text(cmd), cuisine = request.form['cuisine'], uid = uid, type = request.form['type'])
   return login()
 @app.route('/wl')
 def wl():
@@ -432,11 +432,11 @@ def wl():
 @app.route('/addwl', methods = ['POST'])
 def addwl():
   global uid
-  locaname = list(g.conn.execute('SELECT location.lid from location where location.name = :aefge', aefge=(request.form['type'])))[0]
+  locaname = list(g.conn.execute(text('SELECT location.lid from location where location.name = :aefge'), aefge=(request.form['type'])))[0]
   if not locaname:
     return render_template("errorgen.html", error = "No matching location found.")
   cmd = 'INSERT into queue_placed VALUES (,:uid,:lid,)'
-  g.conn.execute(cmd, uid = uid, lid = locaname)
+  g.conn.execute(text(cmd), uid = uid, lid = locaname)
   return login()
 @app.route('/history')
 def history():
@@ -449,11 +449,11 @@ def history():
 def addh():
   global uid
 
-  locaname = list(g.conn.execute('SELECT location.lid from location where location.name = :aefge', aefge=(request.form['type'])))[0]
+  locaname = list(g.conn.execute(text('SELECT location.lid from location where location.name = :aefge'), aefge=(request.form['type'])))[0]
   if not locaname:
-    return render_template("errorgen.html", error = "No matching location found.")
+    return render_template('errorgen.html', error = 'No matching location found.')
   cmd = 'INSERT into user_visit VALUES (:t,:da,:lid,:uid);'
-  g.conn.execute(cmd, uid = uid, lid = locaname, da = request.form['date'], t = request.form['time'])
+  g.conn.execute(text(cmd), uid = uid, lid = locaname, da = request.form['date'], t = request.form['time'])
   return login()
 
 if __name__ == "__main__":
