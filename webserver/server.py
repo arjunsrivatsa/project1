@@ -333,7 +333,7 @@ def submitlocation():
   print(thelocation)
   if list(g.conn.execute("select location.name from location where location.name = %1 ;" %thelocation)):
     return render_template('errorgen.html', error = 'Cannot have duplicate location name')
-  max_location = g.conn.execute('Select MAX(location.lid) from location')
+  max_location = list(g.conn.execute('Select MAX(location.lid) from location'))
   for r in max_location: 
     themaxloc = r[0]
   newlocation = themaxloc+1
@@ -347,7 +347,7 @@ def adduser():
   print(theusername)
   if g.conn.execute("select users.username from users where users.username = %1 ;" %theusername):
     return render_template('errorgen.html', error = 'Cannot have duplicate username')
-  result_max = g.conn.execute('SELECT MAX(users.userid) from users')
+  result_max = list(g.conn.execute('SELECT MAX(users.userid) from users'))
   for r in result_max: 
     the_max_id = r[0]
   new_id = the_max_id +1
@@ -366,7 +366,7 @@ def login():
     if not result:
       return render_template("usererror.html")
     else: 
-      uid = r[1]
+      uid = result[0]
       validUser = True
   query_to_get_user_data = "SELECT users.username from users where users.userid = :useridtocheck"
   data = []
