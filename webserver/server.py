@@ -359,7 +359,7 @@ def login():
   if not validUser:
     username = request.form['name']
     print(username)
-    cmd = 'SELECT count(*), users.userid FROM users WHERE users.username = :name1'
+    cmd = 'SELECT count(*), users.userid FROM users WHERE users.username = :name1 GROUP BY users.userid'
     result = g.conn.execute(text(cmd), name1 = username)
     for r in result:
       print(r[0])
