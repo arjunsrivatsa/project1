@@ -225,7 +225,7 @@ def checkuser():
   useridtocheck = request.form['uname']
   print(useridtocheck)
   print(isinstance(useridtocheck,int))
-  query_to_check_if_user_exists = "SELECT count(*), users.userid from users where users.username = :useridtocheck"
+  query_to_check_if_user_exists = "SELECT count(*), users.userid from users where users.username = :useridtocheck group by users.userid"
   result_of_check_query = g.conn.execute(text(query_to_check_if_user_exists), useridtocheck = useridtocheck)
   for r in result_of_check_query: 
     if (r[0] == 0):
