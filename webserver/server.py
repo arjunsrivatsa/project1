@@ -227,7 +227,7 @@ def checkuser():
   print(isinstance(useridtocheck,int))
   query_to_check_if_user_exists = "SELECT users.userid from users where users.username = :useridtocheck"
   try:
-    r = g.conn.execute(text(query_to_check_if_user_exists), useridtocheck = useridtocheck)
+    r = list(g.conn.execute(text(query_to_check_if_user_exists), useridtocheck = useridtocheck))
   except:
     return render_template("errorgen.html", error = "Username does not exist.")
   for i in r:
