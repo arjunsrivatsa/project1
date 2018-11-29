@@ -52,7 +52,7 @@ uid = None
 #
 # This line creates a database engine that knows how to connect to the URI above
 #
-engine = create_engine(DATABASEURI, convert_unicode=True)
+engine = create_engine(DATABASEURI)
 
 
 # Here we create a test table and insert some values in it
