@@ -392,7 +392,15 @@ def login():
   uq.extend(resultofqforq)
   context = dict(data = data, userlikesdata = userlikesdata, uservisited = uservisited, userrec = userrec, uq = uq)
   return render_template("reviewpage.html", **context) 
-
+@app.route('/sf', methods = ['POST'])
+def sf():
+	return render_template("searchlocation.html")
+@app.route('/rs', methods = ['POST'])
+def rs():
+	return render_template("reviewsearch.html")
+@app.route('/pf', methods = ['POST'])
+def pf():
+	return render_template("prefs.html")	
 @app.route('/logout', methods = ['POST'])
 def logout():
   global uid
